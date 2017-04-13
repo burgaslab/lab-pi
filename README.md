@@ -1,6 +1,6 @@
-# Raspbeery PI door opener
+# Raspberry PI door opener
 
-*A simple golang app with a build in http server as a web front that controlls the GPIO of the raspberry pi*
+*A simple golang app with a build in http server as a web front that controls the GPIO of the raspberry pi*
 
 
 
