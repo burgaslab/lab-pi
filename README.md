@@ -13,9 +13,9 @@
 2. copy over to the PI
 
 ```
-  scp ./door-opener pi@192.168.1.11:/usr/local/door-opener
+  scp ./door-opener pi@192.168.1.11:/usr/local/bin/door-opener
 ```
-* ssh to the PI and run the binary /usr/local/door-opener
+* ssh to the PI and run the binary /usr/local/bin/door-opener
 
 
 3. create systemd service so it runs it at boot and restarts if killed.
@@ -27,7 +27,7 @@
   Description=Lab Door Opener
 
   [Service]
-  ExecStart=/usr/local/door-opener
+  ExecStart=/usr/local/bin/door-opener
   Restart=always
 
   [Install]
