@@ -5,20 +5,25 @@
 
 
 1. build the executable binary
+
+**- Build on any system and copy it to the PI**
   ```
   GOOS=linux GOARCH=arm GOARM=6 go build -v *.go
   ```
-* GOOS=linux GOARCH=arm - sets the executable architecture so the executable can be build on any system and then run it on the PI
+  * GOOS=linux GOARCH=arm - sets the executable architecture so the executable can be build on any system and then run it on the PI
+  ```
+    scp ./door-opener pi@192.168.1.11:/usr/local/bin/door-opener
+  ```
+  * ssh to the PI and run the binary `/usr/local/bin/door-opener [-h for all cli options]`
+  
+**- Build directly on the PI**
+  ```
+  cd /root/go/src/github.com/burgaslab/pi-door-opener
+  go run door-opener.go
+  ```
 
-2. copy over to the PI
 
-```
-  scp ./door-opener pi@192.168.1.11:/usr/local/bin/door-opener
-```
-* ssh to the PI and run the binary /usr/local/bin/door-opener [-h for all cli options]
-
-
-3. create systemd service so it runs it at boot and restarts if killed.
+2. create systemd service so it runs it at boot and restarts if killed.
 
 */lib/systemd/system/door-opener.service*
 
@@ -34,7 +39,7 @@
   WantedBy=multi-user.target
 ```
 
-4.Enable and start the service
+3.Enable and start the service
 
  ```
  systemctl daemon-reload
