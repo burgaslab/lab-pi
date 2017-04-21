@@ -15,7 +15,7 @@
 ```
   scp ./door-opener pi@192.168.1.11:/usr/local/bin/door-opener
 ```
-* ssh to the PI and run the binary /usr/local/bin/door-opener
+* ssh to the PI and run the binary /usr/local/bin/door-opener [-h for all cli options]
 
 
 3. create systemd service so it runs it at boot and restarts if killed.
@@ -44,8 +44,8 @@
 
 **TODO**
 
-- [ ] install golang on the PI so we can compile directly to save time  
-- [ ] control the PI outputs to connect a relay which will control the door
+- [x] install golang on the PI so we can compile directly to save time  
+- [x] control the PI outputs to connect a relay which will control the door
 - [ ] build the home page
 - [ ] add some simple authentication
 - [ ] implement healthcheck - maybe using curl ? and restart the service if failed
