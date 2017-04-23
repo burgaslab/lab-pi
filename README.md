@@ -4,9 +4,15 @@
 
 ## Usage
 
-  **start the server...** 
+  **[Install go on the RPI..](https://golang.org/doc/install)**
   ```go
   ssh pi@raspberrypi.local
+  wget https://storage.googleapis.com/golang/go1.8.1.linux-armv6l.tar.gz
+  tar -C /usr/local -xzf go1.8.1.linux-armv6l.tar.gz
+  ```
+  **start the server...** 
+  ```go
+  
   go get github.com/krasi-georgiev/rpi-web-control
   ~/go/bin/rpi-web-control -pp password
   
