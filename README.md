@@ -18,6 +18,9 @@
   **control the RPI from a web browser...**
   
   http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
+
+  the RPI support avahi/bonjour so you can access it by its hostname: *raspberrypi.local*  
+
   ```go
   
   // pass  - required - the password set when you started the server using -pp
@@ -25,7 +28,6 @@
   // type  - optional - default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
   // delay - optional - default is `3s`. The delay for the timer.
   ```
-* the RPI support avahi/bonjour so you can access it by its hostname: *raspberrypi.local*  
 
 ![RPI pinout](/pizeropinout.jpg)
 
@@ -33,7 +35,7 @@
 ## Build on any system and copy it to the PI
   ```go
   GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control -v *.go
-  // GOOS=linux GOARCH=arm - sets the target executable architecture
+  // GOOS,GOARCH - sets the target architecture
 
   scp ./rpi-web-control pi@raspberrypi.local:/usr/local/bin/rpi-web-control
   ssh pi@raspberrypi.local
