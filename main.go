@@ -24,11 +24,116 @@ var (
 	gpioPins      = []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
 	hanldeSignals = []os.Signal{syscall.SIGINT, syscall.SIGKILL}
 	httpC         = newHTTPConfig()
+	app           = cli.NewApp()
 )
 
 const sysfs string = "/sys/class/gpio/"
 const sysfsGPIOenable string = sysfs + "export"
 const sysfsGPIOdisable string = sysfs + "unexport"
+
+func main() {
+
+	app.Name = "Raspberry PI GPIO web controller"
+	app.Version = "17.04"
+	app.Compiled = time.Now()
+	app.Usage = "Raspberry Pi based golang app to control raspberry PI GPIO ports using a web interface"
+
+	app.Flags = []cli.Flag{
+		cli.UintFlag{
+			Name:  "p,port",
+			Value: 80,
+			Usage: "port for the webserver",
+		},
+		cli.StringFlag{
+			Name:  "pp,password",
+			Usage: "required password for the web server",
+		},
+	}
+
+	app.Action = func(c *cli.Context) error {
+		// start the signal handler as soon as we can to make sure that
+		// we don't miss any signals during boot
+		quit := make(chan os.Signal, 128)
+		signal.Notify(quit, hanldeSignals...)
+
+		var err error
+
+		if err = httpC.setPort(c); err != nil {
+			return err
+		}
+		if err = httpC.setPass(c); err != nil {
+			return err
+		}
+
+		srv := &http.Server{Addr: ":" + httpC.port}
+
+		http.HandleFunc("/control", control)
+
+		http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+			io.WriteString(w, "ok")
+		})
+
+		go func() {
+			log.Print("Started web server on port ", httpC.port)
+			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+				log.Printf("Httpserver: ListenAndServe() error: %s", err)
+				os.Exit(1)
+			}
+		}()
+
+		return shutdown(quit, srv)
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func control(w http.ResponseWriter, r *http.Request) {
+	u, _ := url.Parse(r.RequestURI)
+	v := u.Query()
+
+	if err := httpC.authenticate(v); err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	t := newRpiControl()
+
+	if err := t.setType(v); err != nil {
+		fmt.Fprint(w, err)
+	}
+	if err := t.setDelay(v); err != nil {
+		fmt.Fprint(w, err)
+	}
+	if err := t.setPin(v); err != nil {
+		fmt.Fprint(w, err)
+	}
+
+	go func() {
+		switch a := t.Type; a {
+		case "timer":
+			if err := t.startTimer(); err != nil {
+				log.Printf("Huston we have a problem with the pin timer %v", err)
+			}
+		case "toggle":
+			if err := t.toggle(); err != nil {
+				log.Printf("Huston we have a problem with the pin toggle %v", err)
+			}
+		}
+	}()
+}
+
+func shutdown(quit chan os.Signal, srv *http.Server) error {
+	log.Print("Received signal: ", <-quit)
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		return err
+	}
+	log.Print("gracefull shutdown!")
+	return nil
+}
 
 func newHTTPConfig() *httpConfig {
 	return &httpConfig{}
@@ -185,109 +290,5 @@ func (c *rpiControl) toggle() error {
 		return err
 	}
 	log.Printf("Congrats pin  %v is set to level 1", c.Pin)
-	return nil
-}
-
-func main() {
-	app := cli.NewApp()
-	app.Name = "Raspberry PI GPIO web controller"
-	app.Version = "17.04"
-	app.Compiled = time.Now()
-	app.Usage = "Raspberry Pi based golang app to control raspberry PI GPIO ports using a web interface"
-
-	app.Flags = []cli.Flag{
-		cli.UintFlag{
-			Name:  "p,port",
-			Value: 80,
-			Usage: "port for the webserver",
-		},
-		cli.StringFlag{
-			Name:  "pp,password",
-			Usage: "required password for the web server",
-		},
-	}
-
-	app.Action = func(c *cli.Context) error {
-		// start the signal handler as soon as we can to make sure that
-		// we don't miss any signals during boot
-		quit := make(chan os.Signal, 128)
-		signal.Notify(quit, hanldeSignals...)
-
-		var err error
-
-		if err = httpC.setPort(c); err != nil {
-			return err
-		}
-		if err = httpC.setPass(c); err != nil {
-			return err
-		}
-
-		srv := &http.Server{Addr: ":" + httpC.port}
-
-		http.HandleFunc("/control", control)
-
-		http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-			io.WriteString(w, "ok")
-		})
-
-		go func() {
-			log.Print("Started web server on port ", httpC.port)
-			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-				log.Printf("Httpserver: ListenAndServe() error: %s", err)
-				os.Exit(1)
-			}
-		}()
-
-		return shutdown(quit, srv)
-	}
-
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
-}
-
-func control(w http.ResponseWriter, r *http.Request) {
-	u, _ := url.Parse(r.RequestURI)
-	v := u.Query()
-
-	if err := httpC.authenticate(v); err != nil {
-		fmt.Fprint(w, err.Error())
-		return
-	}
-
-	t := newRpiControl()
-
-	if err := t.setType(v); err != nil {
-		fmt.Fprint(w, err)
-	}
-	if err := t.setDelay(v); err != nil {
-		fmt.Fprint(w, err)
-	}
-	if err := t.setPin(v); err != nil {
-		fmt.Fprint(w, err)
-	}
-
-	go func() {
-		switch a := t.Type; a {
-		case "timer":
-			if err := t.startTimer(); err != nil {
-				log.Printf("Huston we have a problem with the pin timer %v", err)
-			}
-		case "toggle":
-			if err := t.toggle(); err != nil {
-				log.Printf("Huston we have a problem with the pin toggle %v", err)
-			}
-		}
-	}()
-}
-
-func shutdown(quit chan os.Signal, srv *http.Server) error {
-	log.Print("Received signal: ", <-quit)
-
-	if err := srv.Shutdown(context.Background()); err != nil {
-		return err
-	}
-	log.Print("gracefull shutdown!")
 	return nil
 }
