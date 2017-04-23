@@ -45,7 +45,8 @@
 
 ## Create systemd service so it runs at boot and restarts if killed.
 
-*/lib/systemd/system/rpi-web-control.service*
+  Create the service file
+  `nano /lib/systemd/system/rpi-web-control.service`
 
 ```
   [Unit]
@@ -59,7 +60,7 @@
   WantedBy=multi-user.target
 ```
 
-3.Enable and start the service
+ Enable and start the service...
 
  ```
  systemctl daemon-reload
