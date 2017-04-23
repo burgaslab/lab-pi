@@ -4,7 +4,7 @@
 
 ## Usage
 
-  start the server... 
+  **start the server...** 
   ```go
   ssh pi@raspberrypi.local
   go get github.com/krasi-georgiev/rpi-web-control
@@ -15,7 +15,7 @@
   // -p  - optional - default is 80 , the port for the server
   ```
 
-  control the RPI from a web browser...
+  **control the RPI from a web browser...**
   
   http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
   ```go
