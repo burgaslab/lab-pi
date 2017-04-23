@@ -59,9 +59,13 @@ func main() {
 		var err error
 
 		if err = httpC.setPort(c); err != nil {
+			fmt.Println("Incorrect Usage!")
+			cli.ShowCommandHelp(c, "")
 			return err
 		}
 		if err = httpC.setPass(c); err != nil {
+			fmt.Println("Incorrect Usage!")
+			cli.ShowCommandHelp(c, "")
 			return err
 		}
 
