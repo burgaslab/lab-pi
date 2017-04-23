@@ -19,7 +19,7 @@
   
   http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
 
-  the RPI support avahi/bonjour so you can access it by its hostname: *raspberrypi.local*  
+  the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`  
 
   ```go
   
