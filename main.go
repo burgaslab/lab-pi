@@ -21,9 +21,9 @@ import (
 
 var (
 	// TO DO maybe bind to phisical pin locations on the board
-	gpioPins      = []int{4, 17, 27, 22, 5, 6, 13, 19, 26, 18, 23, 24, 25, 12, 16, 20, 21}
+	gpioPins      = []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
 	hanldeSignals = []os.Signal{syscall.SIGINT, syscall.SIGKILL}
-	httpC = newHTTPConfig()
+	httpC         = newHTTPConfig()
 )
 
 const sysfs string = "/sys/class/gpio/"
@@ -55,26 +55,25 @@ func (c *httpConfig) setPass(cli *cli.Context) error {
 	c.pass = cli.String("password")
 	return nil
 }
-func (c *httpConfig)  authenticate(url url.Values) error {
+func (c *httpConfig) authenticate(url url.Values) error {
 	if d, ok := url["pass"]; ok && httpC.pass == d[0] {
-	 return nil
+		return nil
 	}
 	return errors.New("No accesso amiho")
 }
 
-
 func newRpiControl() *rpiControl {
 	return &rpiControl{
-		Type: "timer",
-		Pin:    "21",
-		Delay:  3 * time.Second,
+		Type:  "timer",
+		Pin:   "21",
+		Delay: 3 * time.Second,
 	}
 }
 
 type rpiControl struct {
-	Type string
-	Pin    string
-	Delay  time.Duration
+	Type  string
+	Pin   string
+	Delay time.Duration
 }
 
 func (c *rpiControl) setType(url url.Values) error {
@@ -150,8 +149,8 @@ func (c *rpiControl) disablePin() {
 
 // enable and then disable a pin output using a set delay
 func (c *rpiControl) startTimer() error {
-	if err:=c.enablePin();err !=nil{
-		log.Printf("I couldn't enable pin %v, because %v",c.Pin,err)
+	if err := c.enablePin(); err != nil {
+		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
 	}
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
 		return err
@@ -166,8 +165,8 @@ func (c *rpiControl) startTimer() error {
 }
 
 func (c *rpiControl) toggle() error {
-	if err:=c.enablePin();err !=nil{
-		log.Printf("I couldn't enable pin %v, because %v",c.Pin,err)
+	if err := c.enablePin(); err != nil {
+		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
 	}
 
 	d, err := ioutil.ReadFile(sysfs + "gpio" + c.Pin + "/value")
@@ -215,7 +214,6 @@ func main() {
 		signal.Notify(quit, hanldeSignals...)
 
 		var err error
-
 
 		if err = httpC.setPort(c); err != nil {
 			return err
