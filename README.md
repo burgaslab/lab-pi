@@ -4,34 +4,41 @@
 ## Usage
 
   start the server... 
-  ```
-  rpi-controller -pp password
-  ```
-  control a pin from a web browser...
+  ```go
+  go get github.com/krasi-georgiev/rpi-gpio-web-api
   
-  ```http://ip?pass=password&pin=21&type=timer```
+  rpi-gpio-web-api -pp password // or ~/go/bin/rpi-gpio-web-api
+  
+  // -h  - help
+  // -pp - required - the password that each client should use to authenticate
+  // -p  - optional - default is 80 , the port for the server
+  ```
+
+  control the RPI from a web browser...
+  
+  http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
+  ```go
+  // raspberrypi.local - the RPI support avahi/bonjour so you can access it by its hostname
+  // pass  - required , the password set when you started the server using -pp
+  // pin   - optional, the GPIO pin you want to control, if not provided it will default to 21 (it is next to GND and easy to mesure)
+  // type`  - optional, default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0 for every request)
+  // delay` - optional, default is `3s`. The delay for the timer function.
+  ```
   
 
-1. build the executable binary
+  
+## Build on any system and copy it to the PI
+  ```go
+  GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-gpio-web-api -v *.go
+  // GOOS=linux GOARCH=arm - sets the target executable architecture
 
-**- Build on any system and copy it to the PI**
-  ```
-  GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-controller -v *.go
-  ```
-  * GOOS=linux GOARCH=arm - sets the executable architecture so the executable can be build on any system and then run it on the PI
-  ```
-    scp ./rpi-controller pi@192.168.1.11:/usr/local/bin/rpi-controller
-  ```
-  * ssh to the PI and run the binary `/usr/local/bin/rpi-controller [-h for all cli options]`
-
-**- Build directly on the PI**
-  ```
-  cd /root/go/src/github.com/krasi-georgiev/rpi-gpio-web-api
-  go run -pp password
+  scp ./rpi-gpio-web-api pi@raspberrypi.local:/usr/local/bin/rpi-gpio-web-api
+  ssh pi@rpi-gpio-web-api
+  rpi-gpio-web-api -pp password
   ```
 
 
-2. create systemd service so it runs it at boot and restarts if killed.
+## Create systemd service so it runs it at boot and restarts if killed.
 
 */lib/systemd/system/door-opener.service*
 
