@@ -1,13 +1,14 @@
 # Raspberry PI web GPIO controller 
 *a very minimalistic app to control the RPI outputs using a web api* 
 
+
 ## Usage
 
   start the server... 
   ```go
-  go get github.com/krasi-georgiev/rpi-gpio-web-api
-  
-  rpi-gpio-web-api -pp password // or ~/go/bin/rpi-gpio-web-api
+  ssh pi@raspberrypi.local
+  go get github.com/krasi-georgiev/rpi-web-control
+  ~/go/bin/rpi-web-control -pp password
   
   // -h  - help
   // -pp - required - the password that each client should use to authenticate
@@ -18,36 +19,38 @@
   
   http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
   ```go
-  // raspberrypi.local - the RPI support avahi/bonjour so you can access it by its hostname
-  // pass  - required , the password set when you started the server using -pp
-  // pin   - optional, the GPIO pin you want to control, if not provided it will default to 21 (it is next to GND and easy to mesure)
-  // type`  - optional, default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0 for every request)
-  // delay` - optional, default is `3s`. The delay for the timer function.
-  ```
   
+  // pass  - required - the password set when you started the server using -pp
+  // pin   - optional - default is 21(next to gnd), the pin you want to control
+  // type  - optional - default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
+  // delay - optional - default is `3s`. The delay for the timer.
+  ```
+* the RPI support avahi/bonjour so you can access it by its hostname: *raspberrypi.local*  
+
+![RPI pinout](/pizeropinout.jpg)
 
   
 ## Build on any system and copy it to the PI
   ```go
-  GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-gpio-web-api -v *.go
+  GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control -v *.go
   // GOOS=linux GOARCH=arm - sets the target executable architecture
 
-  scp ./rpi-gpio-web-api pi@raspberrypi.local:/usr/local/bin/rpi-gpio-web-api
-  ssh pi@rpi-gpio-web-api
-  rpi-gpio-web-api -pp password
+  scp ./rpi-web-control pi@raspberrypi.local:/usr/local/bin/rpi-web-control
+  ssh pi@raspberrypi.local
+  rpi-web-control -pp password
   ```
 
 
-## Create systemd service so it runs it at boot and restarts if killed.
+## Create systemd service so it runs at boot and restarts if killed.
 
-*/lib/systemd/system/door-opener.service*
+*/lib/systemd/system/rpi-web-control.service*
 
 ```
   [Unit]
-  Description=Lab Door Opener
+  Description=Rpi Web Controller
 
   [Service]
-  ExecStart=/usr/local/bin/door-opener
+  ExecStart=/usr/local/bin/rpi-web-control
   Restart=always
 
   [Install]
@@ -58,8 +61,8 @@
 
  ```
  systemctl daemon-reload
- systemctl enable door-opener.service
- systemctl start door-opener.service
+ systemctl enable rpi-web-control.service
+ systemctl start rpi-web-control.service
  ```
 
 **TODO**
