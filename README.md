@@ -15,17 +15,15 @@
    // -pp - required - the password that each client should use to authenticate
    // -p  - optional - the port for the server - default is 80
    ```
-**open the home page:** http://raspberrypi.local
-
-  *the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
-
-  ```go
-  // pass  - required - the password set when you started the server using -pp
-  // pin   - optional - default is 21(next to gnd), the pin you want to control
-  // type  - optional - default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
-  // delay - optional - default is `3s`. The delay for the timer.
-  ```
-  the home page sends AJAX requests to 
+**open the home page:** http://raspberrypi.local  
+*the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
+```
+pass  (required) the password set when you started the server using -pp  
+type  (optional) timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
+pin   (optional) the pin to control,    default is 21(next to gnd) 
+delay (optional) delay for the timer,   default is `3s`
+```
+the home page sends AJAX requests to  
 ```
 http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
 ```
