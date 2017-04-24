@@ -107,13 +107,19 @@ func control(w http.ResponseWriter, r *http.Request) {
 	t := newRpiControl()
 
 	if err := t.setType(v); err != nil {
+		log.Printf(err.Error())
 		fmt.Fprint(w, err)
+		return
 	}
 	if err := t.setDelay(v); err != nil {
+		log.Printf(err.Error())
 		fmt.Fprint(w, err)
+		return
 	}
 	if err := t.setPin(v); err != nil {
+		log.Printf(err.Error())
 		fmt.Fprint(w, err)
+		return
 	}
 
 	ch := make(chan string)
@@ -206,7 +212,7 @@ func (c *rpiControl) setType(url url.Values) error {
 	return nil
 }
 func (c *rpiControl) setPin(url url.Values) error {
-	if p, ok := url["Pin"]; ok && p[0] != "" {
+	if p, ok := url["pin"]; ok && p[0] != "" {
 		for _, v := range gpioPins {
 			if strconv.Itoa(v) == p[0] {
 				c.Pin = p[0]
@@ -267,6 +273,7 @@ func (c *rpiControl) disablePin() {
 func (c *rpiControl) startTimer(ch chan string) error {
 	if err := c.enablePin(); err != nil {
 		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
+		return err
 	}
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
 		return err
