@@ -5,7 +5,7 @@
   
   the app uses go routines and it is non blocking so you can control different pins with different delays and trigger options 
   
-### Download and run the [latest release](/releases)
+### Download and run the [latest release](../../releases)
  it is single executable binary so just download and run - quick and efective :)
  
 ### Usage
