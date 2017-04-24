@@ -78,7 +78,7 @@
 
 - [x] install golang on the PI so we can compile directly to save time  
 - [x] control the PI outputs to connect a relay which will control the door
-- [ ] build the home page
+- [x] build the home page
 - [x] add some simple authentication
 - [ ] implement healthcheck - maybe using curl ? and restart the service if failed
-- [ ] run using docker
+- [ ] setup with travis CI to build executable on every push
