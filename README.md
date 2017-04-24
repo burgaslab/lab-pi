@@ -1,4 +1,4 @@
-# Raspberry PI web GPIO controller [![Build Status](https://api.travis-ci.org/krasi-georgiev/rpi-web-control.svg?branch=master)](https://api.travis-ci.org/krasi-georgiev/rpi-web-control)
+# Raspberry PI web GPIO controller [![Build Status](https://api.travis-ci.org/krasi-georgiev/rpi-web-control.svg?branch=master)](https://travis-ci.org/krasi-georgiev/rpi-web-control)
 *a very minimalistic app to control the RPI outputs using a web browser*
   * garage or front door
   * heating appliances
