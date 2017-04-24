@@ -1,37 +1,24 @@
-# Raspberry PI web GPIO controller 
+# Raspberry PI web GPIO controller [![Build Status](https://api.travis-ci.org/krasi-georgiev/rpi-web-control.svg?branch=master)](https://api.travis-ci.org/krasi-georgiev/rpi-web-control)
 *a very minimalistic app to control the RPI outputs using a web browser*
   * garage or front door
   * heating appliances
   
   the app uses go routines and it is non blocking so you can control different pins with different delays and trigger options 
-
-## Usage
-
-  **[Install `go` on the RPI..](https://golang.org/doc/install)**
-  ```go
-  ssh pi@raspberrypi.local
-  wget https://storage.googleapis.com/golang/go1.8.1.linux-armv6l.tar.gz
-  tar -C /usr/local -xzf go1.8.1.linux-armv6l.tar.gz
-  ```
-  **start the server...** 
-  ```go
-  
-  go get github.com/krasi-georgiev/rpi-web-control
-  ~/go/bin/rpi-web-control -pp password
-  
-  // -h  - help
-  // -pp - required - the password that each client should use to authenticate
-  // -p  - optional - default is 80 , the port for the server
-  ```
-
-  **open the RPI controller's home page...**
+ 
+### Usage
+**start the server...**
+   ```go
+   // -h  - help
+   // -pp - required - the password that each client should use to authenticate
+   // -p  - optional - the port for the server - default is 80
+   ```
+**open the home page...**
   
   http://raspberrypi.local
 
   *the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
 
   ```go
-  
   // pass  - required - the password set when you started the server using -pp
   // pin   - optional - default is 21(next to gnd), the pin you want to control
   // type  - optional - default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
@@ -41,6 +28,21 @@
 ```
 http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
 ```
+
+### Download and run the [latest release](/releases)
+ it is single executable binary so just download and run - quick and efective :)
+### or Build from Source (fun and educational)
+
+  **[Install `go` on the RPI..](https://golang.org/doc/install)**
+  ```go
+  ssh pi@raspberrypi.local
+  wget https://storage.googleapis.com/golang/go1.8.1.linux-armv6l.tar.gz
+  tar -C /usr/local -xzf go1.8.1.linux-armv6l.tar.gz
+  go get github.com/krasi-georgiev/rpi-web-control
+  ~/go/bin/rpi-web-control -pp password
+  ```
+
+  
 
 ![RPI pinout](/pizeropinout.jpg)
 
