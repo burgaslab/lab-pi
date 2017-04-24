@@ -4,7 +4,7 @@
 
 ## Usage
 
-  **[Install go on the RPI..](https://golang.org/doc/install)**
+  **[Install `go` on the RPI..](https://golang.org/doc/install)**
   ```go
   ssh pi@raspberrypi.local
   wget https://storage.googleapis.com/golang/go1.8.1.linux-armv6l.tar.gz
