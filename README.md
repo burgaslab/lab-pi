@@ -4,17 +4,18 @@
   * heating appliances
   
   the app uses go routines and it is non blocking so you can control different pins with different delays and trigger options 
+  
+### Download and run the [latest release](/releases)
+ it is single executable binary so just download and run - quick and efective :)
  
 ### Usage
-**start the server...**
    ```go
+   rpi-web-control -pp password
    // -h  - help
    // -pp - required - the password that each client should use to authenticate
    // -p  - optional - the port for the server - default is 80
    ```
-**open the home page...**
-  
-  http://raspberrypi.local
+**open the home page:** http://raspberrypi.local
 
   *the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
 
@@ -29,9 +30,9 @@
 http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
 ```
 
-### Download and run the [latest release](/releases)
- it is single executable binary so just download and run - quick and efective :)
-### or Build from Source (fun and educational)
+![RPI pinout](/pizeropinout.jpg)
+
+### Build from Source (fun and educational)
 
   **[Install `go` on the RPI..](https://golang.org/doc/install)**
   ```go
@@ -41,10 +42,7 @@ http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
   go get github.com/krasi-georgiev/rpi-web-control
   ~/go/bin/rpi-web-control -pp password
   ```
-
-  
-
-![RPI pinout](/pizeropinout.jpg)
+  *I have only test RPI-Zero but I think PI-3 should install the amd64 version*
 
   
 ## Build on any system and copy it to the PI
@@ -90,4 +88,4 @@ http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
 - [x] build the home page
 - [x] add some simple authentication
 - [ ] implement healthcheck - maybe using curl ? and restart the service if failed
-- [ ] setup with travis CI to build executable on every push
+- [x] setup with travis CI to build executable on every push
