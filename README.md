@@ -2,6 +2,8 @@
 *a very minimalistic app to control the RPI outputs using a web browser*
   * garage or front door
   * heating appliances
+  
+  the app uses go routines and it is non blocking so you can control different pins with different delays and trigger options 
 
 ## Usage
 
