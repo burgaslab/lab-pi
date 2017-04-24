@@ -21,9 +21,9 @@
   // -p  - optional - default is 80 , the port for the server
   ```
 
-  **control the RPI from a web browser...**
+  **open the RPI controller's home page...**
   
-  http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
+  http://raspberrypi.local
 
   the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`  
 
@@ -34,6 +34,10 @@
   // type  - optional - default is `timer`. timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
   // delay - optional - default is `3s`. The delay for the timer.
   ```
+  the home page sends AJAX requests to 
+```
+http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
+```
 
 ![RPI pinout](/pizeropinout.jpg)
 
@@ -41,7 +45,7 @@
 ## Build on any system and copy it to the PI
   ```go
   GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control -v *.go
-  // GOOS,GOARCH - sets the target architecture
+  // GOOS,GOARCH - sets the target architecture. This example is for RPI Zero
 
   scp ./rpi-web-control pi@raspberrypi.local:/usr/local/bin/rpi-web-control
   ssh pi@raspberrypi.local
