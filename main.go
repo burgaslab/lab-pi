@@ -72,6 +72,7 @@ func main() {
 		srv := &http.Server{Addr: ":" + httpC.port}
 
 		http.HandleFunc("/control", control)
+		http.HandleFunc("/", home)
 
 		http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, "ok")
@@ -115,18 +116,24 @@ func control(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err)
 	}
 
+	ch := make(chan string)
 	go func() {
 		switch a := t.Type; a {
 		case "timer":
-			if err := t.startTimer(); err != nil {
-				log.Printf("Huston we have a problem with the pin timer %v", err)
+			if err := t.startTimer(ch); err != nil {
+				r := fmt.Sprintf("Huston we have a problem with the timer: %v", err)
+				log.Printf(r)
+				ch <- r
 			}
 		case "toggle":
-			if err := t.toggle(); err != nil {
-				log.Printf("Huston we have a problem with the pin toggle %v", err)
+			if err := t.toggle(ch); err != nil {
+				r := fmt.Sprintf("Huston we have a problem with the toggle: %v", err)
+				log.Printf(r)
+				ch <- r
 			}
 		}
 	}()
+	fmt.Fprint(w, <-ch)
 }
 
 func shutdown(quit chan os.Signal, srv *http.Server) error {
@@ -186,7 +193,7 @@ type rpiControl struct {
 }
 
 func (c *rpiControl) setType(url url.Values) error {
-	if d, ok := url["type"]; ok {
+	if d, ok := url["type"]; ok && d[0] != "" {
 		switch v := d[0]; v {
 		case "timer":
 			return nil
@@ -199,7 +206,7 @@ func (c *rpiControl) setType(url url.Values) error {
 	return nil
 }
 func (c *rpiControl) setPin(url url.Values) error {
-	if p, ok := url["Pin"]; ok {
+	if p, ok := url["Pin"]; ok && p[0] != "" {
 		for _, v := range gpioPins {
 			if strconv.Itoa(v) == p[0] {
 				c.Pin = p[0]
@@ -214,7 +221,7 @@ func (c *rpiControl) setPin(url url.Values) error {
 }
 
 func (c *rpiControl) setDelay(url url.Values) error {
-	if d, ok := url["delay"]; ok {
+	if d, ok := url["delay"]; ok && d[0] != "" {
 		if t, err := time.ParseDuration(d[0]); err == nil {
 			c.Delay = t
 			return nil
@@ -257,23 +264,25 @@ func (c *rpiControl) disablePin() {
 }
 
 // enable and then disable a pin output using a set delay
-func (c *rpiControl) startTimer() error {
+func (c *rpiControl) startTimer(ch chan string) error {
 	if err := c.enablePin(); err != nil {
 		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
 	}
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
 		return err
 	}
-	log.Printf("Pin %v set to 1 for %v seconds", c.Pin, c.Delay)
+	r := fmt.Sprintf("Pin %v got 'HIGH' on drugs for %v seconds", c.Pin, c.Delay)
+	log.Printf(r)
+	ch <- r
 	time.Sleep(c.Delay)
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("0"), 0644); err != nil {
 		return err
 	}
-	log.Printf("Pin %v set to 0", c.Pin)
+	log.Printf("pin %v is laid 'LOW'", c.Pin)
 	return nil
 }
 
-func (c *rpiControl) toggle() error {
+func (c *rpiControl) toggle(ch chan string) error {
 	if err := c.enablePin(); err != nil {
 		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
 	}
@@ -287,12 +296,128 @@ func (c *rpiControl) toggle() error {
 		if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("0"), 0644); err != nil {
 			return err
 		}
-		log.Printf("Congrats pin  %v is set to level 0", c.Pin)
+		r := fmt.Sprintf("pin %v just got 'LOW' on selfesteam", c.Pin)
+		log.Printf(r)
+		ch <- r
 		return nil
 	}
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
 		return err
 	}
-	log.Printf("Congrats pin  %v is set to level 1", c.Pin)
+	r := fmt.Sprintf("pin  %v just got 'HIGH' on drugs", c.Pin)
+	log.Printf(r)
+	ch <- r
 	return nil
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, `
+		<html lang='en'>
+    <head>
+				<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
+        <title>RPI Web controller</title>
+
+				<style>
+				form {
+          width: 80%;
+          margin: 0 auto;
+          max-width: 400px;
+          }
+				body {font-size: 20px;font-family: Arial;}
+				input,select {padding: 10px;font-size: 14px;width:100%; margin:10px 0px}
+
+        input[type=submit] {
+            cursor: pointer;
+            display: inline-block;
+            color: #fff;
+            border: 0px solid #6b963c;
+            padding: 5px 10px;
+            margin: 5px 0px;
+            background-color:#5c9fcd;
+            font-size: 30px;
+        }
+				#result {
+						font-weight:bold;
+						text-align:center;
+            width:100%;
+				}
+				</style>
+    </head>
+
+    <body>
+		<form id="controllerForm">
+		<fieldset>
+			<legend>Control Options</legend>
+			<select id="type">
+			  <option value="timer">timer</option>
+			  <option value="toggle">toggle</option>
+			</select>
+			<input type="password" id="pass" placeholder="password" />
+			<input type="text" id="pin" placeholder="Pin (optional)" >
+			<input type="text" id="delay" placeholder="Delay (optional)">
+			<input type="submit" value="GO">
+		</fieldset>
+		</form>
+		<div id="result"></div>
+		<script type="text/javascript">
+
+    var pass = getCookie("pass");
+    if (pass != "") {
+        document.getElementById("pass").value = pass;
+    }
+
+		var controllerForm = document.forms["controllerForm"];
+
+		controllerForm.onsubmit = function(event){
+		  event.preventDefault();
+
+      var today = new Date();
+      today.setMonth(today.getMonth()+12);
+      document.cookie = "pass="+document.getElementById("pass").value + ';expires=' + today.toGMTString();
+
+			var pass="pass="+document.getElementById("pass").value;
+			var type="&type="+document.getElementById("type").value;
+			var pin="&pin="+document.getElementById("pin").value;
+			var delay="&delay="+document.getElementById("delay").value;
+
+			var xhttp = new XMLHttpRequest();
+		  xhttp.open("GET","/control?"+pass+type+pin+delay,true);
+
+			document.getElementById("result").innerHTML = "";
+			xhttp.onload = function() {
+			  if (xhttp.status == 200) {
+							document.getElementById("result").innerHTML = this.responseText;
+			  }
+			};
+      xhttp.send();
+		}
+
+
+    function getCookie(cname) {
+      var name = cname + "=";
+      var decodedCookie = decodeURIComponent(document.cookie);
+      var ca = decodedCookie.split(';');
+      for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+              c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+              return c.substring(name.length, c.length);
+          }
+      }
+      return "";
+  }
+		</script>
+
+
+
+		</body>
+		</html>
+
+
+
+
+
+		`)
 }
