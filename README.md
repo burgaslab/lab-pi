@@ -25,7 +25,7 @@
   
   http://raspberrypi.local
 
-  the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`  
+  *the RPI support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
 
   ```go
   
