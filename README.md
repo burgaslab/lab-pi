@@ -1,6 +1,7 @@
 # Raspberry PI web GPIO controller 
-*a very minimalistic app to control the RPI outputs using a web api* 
-
+*a very minimalistic app to control the RPI outputs using a web browser*
+  * garage or front door
+  * heating appliances
 
 ## Usage
 
