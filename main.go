@@ -315,7 +315,7 @@ func (c *rpiControl) toggle(ch chan string) error {
 
 	d, err := ioutil.ReadFile(sysfs + "gpio" + c.Pin + "/value")
 	if err != nil {
-		log.Printf("Oh boy can't read the status of pin  %v becasue I don't have my glasses and %v", c.Pin, err)
+		log.Printf("Oh boy can't read the status of pin	%v becasue I don't have my glasses and %v", c.Pin, err)
 	}
 
 	if string(d) == "1\n" {
@@ -330,7 +330,7 @@ func (c *rpiControl) toggle(ch chan string) error {
 	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
 		return err
 	}
-	r := fmt.Sprintf("pin  %v just got 'HIGH' on drugs", c.Pin)
+	r := fmt.Sprintf("pin %v just got 'HIGH' on drugs", c.Pin)
 	log.Printf(r)
 	ch <- r
 	return nil
@@ -339,44 +339,60 @@ func (c *rpiControl) toggle(ch chan string) error {
 func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, `
 		<html lang='en'>
-    <head>
+		<head>
 				<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
-        <title>RPI Web controller</title>
+				<title>RPI Web controller</title>
 
 				<style>
 				form {
-          width: 80%;
-          margin: 0 auto;
-          max-width: 400px;
-          }
+					width: 80%;
+					margin: 0 auto;
+					max-width: 400px;
+					}
 				body {font-size: 20px;font-family: Arial;}
 				input,select {padding: 10px;font-size: 14px;width:100%; margin:10px 0px}
 
-        input[type=submit] {
-            cursor: pointer;
-            display: inline-block;
-            color: #fff;
-            border: 0px solid #6b963c;
-            padding: 5px 10px;
-            margin: 5px 0px;
-            background-color:#5c9fcd;
-            font-size: 30px;
-        }
+				input[type=submit] {
+						cursor: pointer;
+						display: inline-block;
+						color: #fff;
+						border: 0px solid #6b963c;
+						padding: 5px 10px;
+						margin: 5px 0px;
+						background-color:#5c9fcd;
+						font-size: 30px;
+				}
 				#result {
 						font-weight:bold;
 						text-align:center;
-            width:100%;
+				}
+				#loaderWrapper {
+					width:30px;
+					margin:0 auto;
+				}
+
+				.loader {
+						border: 16px solid #f3f3f3; /* Light grey */
+						border-top: 16px solid #3498db; /* Blue */
+						border-radius: 50%;
+						height: 30px;
+						animation: spin 1s linear infinite;
+				}
+
+				@keyframes spin {
+						0% { transform: rotate(0deg); }
+						100% { transform: rotate(360deg); }
 				}
 				</style>
-    </head>
+		</head>
 
-    <body>
+		<body>
 		<form id="controllerForm">
 		<fieldset>
 			<legend>Control Options</legend>
 			<select id="type">
-			  <option value="timer">timer</option>
-			  <option value="toggle">toggle</option>
+				<option value="timer">timer</option>
+				<option value="toggle">toggle</option>
 			</select>
 			<input type="password" id="pass" placeholder="password" />
 			<input type="text" id="pin" placeholder="Pin (optional)" >
@@ -384,22 +400,24 @@ func home(w http.ResponseWriter, r *http.Request) {
 			<input type="submit" value="GO">
 		</fieldset>
 		</form>
+		<div id="loaderWrapper"></div>
 		<div id="result"></div>
+
 		<script type="text/javascript">
 
-    var pass = getCookie("pass");
-    if (pass != "") {
-        document.getElementById("pass").value = pass;
-    }
+		var pass = getCookie("pass");
+		if (pass != "") {
+				document.getElementById("pass").value = pass;
+		}
 
 		var controllerForm = document.forms["controllerForm"];
 
 		controllerForm.onsubmit = function(event){
-		  event.preventDefault();
+			event.preventDefault();
 
-      var today = new Date();
-      today.setMonth(today.getMonth()+12);
-      document.cookie = "pass="+document.getElementById("pass").value + ';expires=' + today.toGMTString();
+			var today = new Date();
+			today.setMonth(today.getMonth()+12);
+			document.cookie = "pass="+document.getElementById("pass").value + ';expires=' + today.toGMTString();
 
 			var pass="pass="+document.getElementById("pass").value;
 			var type="&type="+document.getElementById("type").value;
@@ -407,43 +425,39 @@ func home(w http.ResponseWriter, r *http.Request) {
 			var delay="&delay="+document.getElementById("delay").value;
 
 			var xhttp = new XMLHttpRequest();
-		  xhttp.open("GET","/control?"+pass+type+pin+delay,true);
+			xhttp.open("GET","/control?"+pass+type+pin+delay,true);
 
 			document.getElementById("result").innerHTML = "";
+			document.getElementById("loaderWrapper").classList.add('loader');
+
 			xhttp.onload = function() {
-			  if (xhttp.status == 200) {
+			if (xhttp.status == 200) {
+							document.getElementById("loaderWrapper").classList.remove('loader');
 							document.getElementById("result").innerHTML = this.responseText;
-			  }
-			};
-      xhttp.send();
+						}
+						};
+			xhttp.send();
 		}
 
 
-    function getCookie(cname) {
-      var name = cname + "=";
-      var decodedCookie = decodeURIComponent(document.cookie);
-      var ca = decodedCookie.split(';');
-      for(var i = 0; i <ca.length; i++) {
-          var c = ca[i];
-          while (c.charAt(0) == ' ') {
-              c = c.substring(1);
-          }
-          if (c.indexOf(name) == 0) {
-              return c.substring(name.length, c.length);
-          }
-      }
-      return "";
-  }
+		function getCookie(cname) {
+			var name = cname + "=";
+			var decodedCookie = decodeURIComponent(document.cookie);
+			var ca = decodedCookie.split(';');
+			for(var i = 0; i <ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) == ' ') {
+							c = c.substring(1);
+					}
+					if (c.indexOf(name) == 0) {
+							return c.substring(name.length, c.length);
+					}
+			}
+			return "";
+	}
 		</script>
-
-
 
 		</body>
 		</html>
-
-
-
-
-
 		`)
 }
