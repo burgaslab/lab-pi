@@ -253,7 +253,7 @@ func (c *rpiControl) setDelay(url url.Values) error {
 			c.Delay = t
 			return nil
 		}
-		e := fmt.Sprintf("Invalid time delay format :%v (use 1ms, 1s1, 1m1, 1h)", d[0])
+		e := fmt.Sprintf("Invalid time delay format :%v (use 1ms, 1s, 1m, 1h)", d[0])
 		return errors.New(e)
 	}
 	return nil
