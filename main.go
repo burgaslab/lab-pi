@@ -409,6 +409,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 		if (pass != "") {
 				document.getElementById("pass").value = pass;
 		}
+		var pin = getCookie("pin");
+		if (pin != "") {
+				document.getElementById("pin").value = pin;
+		}
+		var delay = getCookie("delay");
+		if (delay != "") {
+				document.getElementById("delay").value = delay;
+		}
 
 		var controllerForm = document.forms["controllerForm"];
 
@@ -418,6 +426,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 			var today = new Date();
 			today.setMonth(today.getMonth()+12);
 			document.cookie = "pass="+document.getElementById("pass").value + ';expires=' + today.toGMTString();
+			document.cookie = "pin="+document.getElementById("pin").value + ';expires=' + today.toGMTString();
+			document.cookie = "delay="+document.getElementById("delay").value + ';expires=' + today.toGMTString();
 
 			var pass="pass="+document.getElementById("pass").value;
 			var type="&type="+document.getElementById("type").value;
