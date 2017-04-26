@@ -1,4 +1,10 @@
-memo = "dc31bf18b10af3b28727eb5be721811713c44bfc4ac5f49047e4ce7829f998a2"
+memo = "82343e946c063fa6ba93c7ff24d00f3fc8e896e19c9eb4cf45b5a8960f9ed327"
+
+[[projects]]
+  name = "github.com/coreos/go-systemd"
+  packages = ["daemon"]
+  revision = "48702e0da86bd25e76cfef347e2adeb434a0d0a6"
+  version = "v14"
 
 [[projects]]
   name = "github.com/urfave/cli"

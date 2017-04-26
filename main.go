@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/coreos/go-systemd/daemon"
 	"github.com/urfave/cli"
 )
 
@@ -83,6 +84,24 @@ func main() {
 			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 				log.Printf("Httpserver: ListenAndServe() error: %s", err)
 				os.Exit(1)
+			}
+		}()
+
+		// send heartbeat signals to systemd otherwise it will restart the process
+		go func() {
+			interval, err := daemon.SdWatchdogEnabled(false)
+			if err != nil || interval == 0 {
+				log.Print("Watchdog not enabled for this service!")
+				return
+			}
+			for {
+				_, err := http.Get("http://127.0.0.1:" + httpC.port)
+				if err == nil {
+					daemon.SdNotify(false, "WATCHDOG=1")
+				} else {
+					log.Printf("RPI Controller watchdog error: %v", err)
+				}
+				time.Sleep(interval / 3)
 			}
 		}()
 
