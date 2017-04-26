@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,10 +35,10 @@ const defaultPin = "18"
 
 func main() {
 
-	app.Name = "Raspberry PI GPIO web controller"
+	app.Name = "Raspberry Pi GPIO web controller"
 	app.Version = "17.04"
 	app.Compiled = time.Now()
-	app.Usage = "Raspberry Pi based golang app to control raspberry PI GPIO ports using a web interface"
+	app.Usage = "Raspberry Pi based golang app to control raspberry Pi GPIO ports using a web interface"
 
 	app.Flags = []cli.Flag{
 		cli.UintFlag{
@@ -77,10 +76,6 @@ func main() {
 		http.HandleFunc("/control", control)
 		http.HandleFunc("/", home)
 
-		http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-			io.WriteString(w, "ok")
-		})
-
 		go func() {
 			log.Print("Started web server on port ", httpC.port)
 			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
@@ -101,7 +96,7 @@ func main() {
 				if err == nil {
 					daemon.SdNotify(false, "WATCHDOG=1")
 				} else {
-					log.Printf("RPI Controller watchdog error: %v", err)
+					log.Printf("RPi Controller watchdog error: %v", err)
 				}
 				time.Sleep(interval / 3)
 			}
@@ -343,7 +338,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		<html lang='en'>
 		<head>
 				<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
-				<title>RPI Web controller</title>
+				<title>RPi Web controller</title>
 
 				<style>
 				form {
