@@ -20,12 +20,12 @@
 ```
 pass  (required) the password set when you started the server using -pp  
 type  (optional) timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
-pin   (optional) the pin to control,    default is 21(next to gnd)
-delay (optional) delay for the timer,   default is `3s`
+pin   (optional) the pin to control,    default is 18
+delay (optional) delay for the timer,   default is `2s`
 ```
 the home page sends AJAX requests to  
 ```
-http://raspberrypi.local/control?pass=password&pin=21&type=timer&delay=3s
+http://raspberrypi.local/control?pass=password&pin=18&type=timer&delay=2s
 ```
 
 ![RPI pinout](/pizeropinout.jpg)

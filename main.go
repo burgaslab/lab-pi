@@ -22,7 +22,7 @@ import (
 
 var (
 	// TO DO maybe bind to phisical pin locations on the board
-	gpioPins      = []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
+	gpioPins      = []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 18, 22, 23, 24, 25, 26, 27}
 	hanldeSignals = []os.Signal{syscall.SIGINT, syscall.SIGKILL}
 	httpC         = newHTTPConfig()
 	app           = cli.NewApp()
@@ -31,6 +31,8 @@ var (
 const sysfs string = "/sys/class/gpio/"
 const sysfsGPIOenable string = sysfs + "export"
 const sysfsGPIOdisable string = sysfs + "unexport"
+const defaultDelay = 2
+const defaultPin = "18"
 
 func main() {
 
@@ -206,8 +208,8 @@ func (c *httpConfig) authenticate(url url.Values) error {
 func newRpiControl() *rpiControl {
 	return &rpiControl{
 		Type:  "timer",
-		Pin:   "21",
-		Delay: 3 * time.Second,
+		Pin:   defaultPin,
+		Delay: defaultDelay * time.Second,
 	}
 }
 
@@ -337,7 +339,7 @@ func (c *rpiControl) toggle(ch chan string) error {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, `
+	fmt.Fprintf(w, `
 		<html lang='en'>
 		<head>
 				<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
@@ -345,12 +347,12 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 				<style>
 				form {
-					width: 80%;
+					width: 80%%;
 					margin: 0 auto;
 					max-width: 400px;
 					}
 				body {font-size: 20px;font-family: Arial;}
-				input,select {padding: 10px;font-size: 14px;width:100%; margin:10px 0px}
+				input,select {padding: 10px;font-size: 14px;width:100%%; margin:10px 0px}
 
 				input[type=submit] {
 						cursor: pointer;
@@ -374,14 +376,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 				.loader {
 						border: 16px solid #f3f3f3; /* Light grey */
 						border-top: 16px solid #3498db; /* Blue */
-						border-radius: 50%;
+						border-radius: 50%%;
 						height: 30px;
 						animation: spin 1s linear infinite;
 				}
 
 				@keyframes spin {
-						0% { transform: rotate(0deg); }
-						100% { transform: rotate(360deg); }
+						0%% { transform: rotate(0deg); }
+						100%% { transform: rotate(360deg); }
 				}
 				</style>
 		</head>
@@ -395,8 +397,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 				<option value="toggle">toggle</option>
 			</select>
 			<input type="password" id="pass" placeholder="password" />
-			<input type="text" id="pin" placeholder="Pin (optional)" >
-			<input type="text" id="delay" placeholder="Delay (optional)">
+			<input type="text" id="pin" placeholder="Pin (optional, default is %v)" >
+			<input type="text" id="delay" placeholder="Delay (optional, default is %v)">
 			<input type="submit" value="GO">
 		</fieldset>
 		</form>
@@ -441,11 +443,27 @@ func home(w http.ResponseWriter, r *http.Request) {
 			document.getElementById("loaderWrapper").classList.add('loader');
 
 			xhttp.onload = function() {
-			if (xhttp.status == 200) {
-							document.getElementById("loaderWrapper").classList.remove('loader');
-							document.getElementById("result").innerHTML = this.responseText;
-						}
-						};
+				document.getElementById("loaderWrapper").classList.remove('loader');
+
+				if (xhttp.status == 200) {
+						document.getElementById("result").innerHTML = this.responseText;
+				}
+				else{
+						document.getElementById("result").innerHTML = "request error";
+				}
+			}
+			xhttp.onreadystatechange = function() {
+				document.getElementById("loaderWrapper").classList.remove('loader');
+				if (xhttp.readyState == 4 && xhttp.status == 0) {
+					document.getElementById("result").innerHTML = "server error";
+				}
+			};
+
+			xhttp.timeout = 4000;
+			xhttp.ontimeout = function () {
+				document.getElementById("loaderWrapper").classList.remove('loader');
+				document.getElementById("result").innerHTML = "timeout";
+			}
 			xhttp.send();
 		}
 
@@ -469,5 +487,5 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 		</body>
 		</html>
-		`)
+		`, defaultPin, defaultDelay)
 }
