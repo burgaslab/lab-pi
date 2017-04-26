@@ -5,6 +5,10 @@ go:
 dist: trusty
 sudo: required
 
+notifications:
+  slack:
+    on_success: never
+    on_failure: always
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y libsystemd-journal-dev
