@@ -1,6 +1,10 @@
 language: go
 go:
 - 1.8
+
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install systemd
 script:
 - GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control-pi-zero -v *.go
 - GOOS=linux GOARCH=arm GOARM=7 go build -o rpi-web-control-pi-3 -v *.go
