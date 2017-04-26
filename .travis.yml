@@ -2,9 +2,12 @@ language: go
 go:
 - 1.8
 
-before_script:
-  - sudo apt-get update -qq
-  - sudo apt-get install systemd
+dist: trusty
+sudo: required
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y libsystemd-journal-dev
 script:
 - GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control-pi-zero -v *.go
 - GOOS=linux GOARCH=arm GOARM=7 go build -o rpi-web-control-pi-3 -v *.go
@@ -12,7 +15,7 @@ deploy:
   provider: releases
   api_key:
     secure: BdbYrR1MDtrb5qrTOrw4Jy25HO5Xb8tIobfrMoEB4kekUNeT0bEItOURsIFzcEuh1Xyk5ZA3HUGpIkohrIHT8w32bZws05hISIuw9y+04zppcqdCihOYE9xgClsfR/0gBxNDYak7+DJCmKqfo9L4xwCh4o2kimVGfjT5iklZoPX2f2OGYoN+Spd6cH96jXYwcIpIu6hyUYrO/D2lDQKBlxJnNNm32O0E5O9qc50kWSPlEG0jKHuW7mqzI94O6fDpoFD4UMyBafS8eseD/ATwulI274iCU3b64p+TFjiU+w4A92E0jq/pDXkjV4XqnT/Tfj7SWthW3c1ftXdVCOlXO9KiFHoqVaxqpnt2vngzL46oeO8si9vMnQhYoT0Zp/obYgAGkPLC5E7E5EMr9mNzQGWzQ6ff8cdh/lOv5e+HoR4dbtTxxdv8b79/T7C5H0fcRy/gdKnDK7EYYF+BhuOttd2zMJ6qNxKZViAr83bPm9oUyITafM2oRTFOLHNuyGst6g9W3cpKzC23utEuyT9BVGVhB/lER038OlYxp9n4sMZ2rHJB1dBVbo1ETie22Uwg2ZrnlQb4C98gHZfnTn+kYyExYvBuZkEiinjmSbjdzTY3KPwW1Ds5ge/eEtJK4RrHeKzm24LA59mRRdYjhtuvsETETls1eyVar1DgKDc3JBA=
-  file: 
+  file:
     - rpi-web-control-pi-zero
     - rpi-web-control-pi-3
   skip_cleanup: true
