@@ -2,36 +2,27 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"sort"
-	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/krasi-georgiev/rpi-web-control/gpio"
+	"github.com/krasi-georgiev/rpi-web-control/server"
 
 	"github.com/coreos/go-systemd/daemon"
 	"github.com/urfave/cli"
 )
 
 var (
-	// TO DO maybe bind to phisical pin locations on the board
-	gpioPins      = []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 18, 22, 23, 24, 25, 26, 27}
 	hanldeSignals = []os.Signal{syscall.SIGINT, syscall.SIGKILL}
-	httpC         = newHTTPConfig()
+	srvConfig     = server.NewConfig()
 	app           = cli.NewApp()
 )
-
-const sysfs string = "/sys/class/gpio/"
-const sysfsGPIOenable string = sysfs + "export"
-const sysfsGPIOdisable string = sysfs + "unexport"
-const defaultDelay = 2
-const defaultPin = "18"
 
 func main() {
 
@@ -60,24 +51,24 @@ func main() {
 
 		var err error
 
-		if err = httpC.setPort(c); err != nil {
+		if err = srvConfig.SetPort(c); err != nil {
 			fmt.Println("Incorrect Usage!")
 			cli.ShowCommandHelp(c, "")
 			return err
 		}
-		if err = httpC.setPass(c); err != nil {
+		if err = srvConfig.SetPass(c); err != nil {
 			fmt.Println("Incorrect Usage!")
 			cli.ShowCommandHelp(c, "")
 			return err
 		}
 
-		srv := &http.Server{Addr: ":" + httpC.port}
+		srv := &http.Server{Addr: ":" + srvConfig.Port}
 
 		http.HandleFunc("/control", control)
 		http.HandleFunc("/", home)
 
 		go func() {
-			log.Print("Started web server on port ", httpC.port)
+			log.Print("Started web server on port ", srvConfig.Port)
 			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 				log.Printf("Httpserver: ListenAndServe() error: %s", err)
 				os.Exit(1)
@@ -92,16 +83,15 @@ func main() {
 				return
 			}
 			for {
-				_, err := http.Get("http://127.0.0.1:" + httpC.port)
+				time.Sleep(interval / 3)
+				_, err := http.Get("http://127.0.0.1:" + srvConfig.Port)
 				if err == nil {
 					daemon.SdNotify(false, "WATCHDOG=1")
 				} else {
 					log.Printf("RPi Controller watchdog error: %v", err)
 				}
-				time.Sleep(interval / 3)
 			}
 		}()
-
 		return shutdown(quit, srv)
 	}
 
@@ -115,24 +105,24 @@ func control(w http.ResponseWriter, r *http.Request) {
 	u, _ := url.Parse(r.RequestURI)
 	v := u.Query()
 
-	if err := httpC.authenticate(v); err != nil {
+	if err := srvConfig.Authenticate(v); err != nil {
 		fmt.Fprint(w, err.Error())
 		return
 	}
 
-	t := newRpiControl()
+	t := gpio.NewControl()
 
-	if err := t.setType(v); err != nil {
+	if err := t.SetType(v); err != nil {
 		log.Printf(err.Error())
 		fmt.Fprint(w, err)
 		return
 	}
-	if err := t.setDelay(v); err != nil {
+	if err := t.SetDelay(v); err != nil {
 		log.Printf(err.Error())
 		fmt.Fprint(w, err)
 		return
 	}
-	if err := t.setPin(v); err != nil {
+	if err := t.SetPin(v); err != nil {
 		log.Printf(err.Error())
 		fmt.Fprint(w, err)
 		return
@@ -142,13 +132,13 @@ func control(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		switch a := t.Type; a {
 		case "timer":
-			if err := t.startTimer(ch); err != nil {
+			if err := t.StartTimer(ch); err != nil {
 				r := fmt.Sprintf("Huston we have a problem with the timer: %v", err)
 				log.Printf(r)
 				ch <- r
 			}
 		case "toggle":
-			if err := t.toggle(ch); err != nil {
+			if err := t.Toggle(ch); err != nil {
 				r := fmt.Sprintf("Huston we have a problem with the toggle: %v", err)
 				log.Printf(r)
 				ch <- r
@@ -165,171 +155,6 @@ func shutdown(quit chan os.Signal, srv *http.Server) error {
 		return err
 	}
 	log.Print("gracefull shutdown!")
-	return nil
-}
-
-func newHTTPConfig() *httpConfig {
-	return &httpConfig{}
-}
-
-type httpConfig struct {
-	port string
-	pass string
-}
-
-func (c *httpConfig) setPort(cli *cli.Context) error {
-	p := cli.Uint("port")
-	if p > 0 && p < 65536 {
-		c.port = cli.String("port")
-		return nil
-	}
-	return errors.New("Invalid port number:" + fmt.Sprint(p) + ", select a port between 1 and 65535")
-
-}
-func (c *httpConfig) setPass(cli *cli.Context) error {
-	if cli.String("password") == "" {
-		return errors.New("Password can't be empty")
-	}
-	c.pass = cli.String("password")
-	return nil
-}
-func (c *httpConfig) authenticate(url url.Values) error {
-	if d, ok := url["pass"]; ok && httpC.pass == d[0] {
-		return nil
-	}
-	return errors.New("No accesso amiho")
-}
-
-func newRpiControl() *rpiControl {
-	return &rpiControl{
-		Type:  "timer",
-		Pin:   defaultPin,
-		Delay: defaultDelay * time.Second,
-	}
-}
-
-type rpiControl struct {
-	Type  string
-	Pin   string
-	Delay time.Duration
-}
-
-func (c *rpiControl) setType(url url.Values) error {
-	if d, ok := url["type"]; ok && d[0] != "" {
-		switch v := d[0]; v {
-		case "timer":
-			return nil
-		case "toggle":
-			c.Type = v
-		default:
-			return errors.New("Invalid control type:" + v)
-		}
-	}
-	return nil
-}
-func (c *rpiControl) setPin(url url.Values) error {
-	if p, ok := url["pin"]; ok && p[0] != "" {
-		for _, v := range gpioPins {
-			if strconv.Itoa(v) == p[0] {
-				c.Pin = p[0]
-				return nil
-			}
-		}
-		sort.Ints(gpioPins)
-		e := fmt.Sprintf("Invalid GPIO pin number:%v, choose one of :%v", p, gpioPins)
-		return errors.New(e)
-	}
-	return nil
-}
-
-func (c *rpiControl) setDelay(url url.Values) error {
-	if d, ok := url["delay"]; ok && d[0] != "" {
-		if t, err := time.ParseDuration(d[0]); err == nil {
-			c.Delay = t
-			return nil
-		}
-		e := fmt.Sprintf("Invalid time delay format :%v (use 1ms, 1s, 1m, 1h)", d[0])
-		return errors.New(e)
-	}
-	return nil
-}
-
-func (c *rpiControl) enablePin() error {
-	// enable if not already enabled
-	if _, err := os.Stat(sysfs + "gpio" + c.Pin); os.IsNotExist(err) {
-		if _, err := os.Stat(sysfsGPIOenable); os.IsNotExist(err) {
-			return err
-		}
-
-		if err := ioutil.WriteFile(sysfsGPIOenable, []byte(c.Pin), 0644); err != nil {
-			return err
-		}
-		if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/direction", []byte("out"), 0644); err != nil {
-			return err
-		}
-		log.Printf("Output %v ready for work!", c.Pin)
-	}
-	return nil
-}
-
-func (c *rpiControl) disablePin() {
-	if _, err := os.Stat(sysfs + "gpio" + c.Pin); os.IsNotExist(err) {
-		// it is already disabled so nothing else to do, bail out
-		return
-	}
-
-	err := ioutil.WriteFile(sysfsGPIOdisable, []byte(c.Pin), 0644)
-	if err != nil {
-		log.Printf("Oops can't disable pin %v because %v", c.Pin, err)
-	}
-	log.Printf("Disabled pin %v", c.Pin)
-}
-
-// enable and then disable a pin output using a set delay
-func (c *rpiControl) startTimer(ch chan string) error {
-	if err := c.enablePin(); err != nil {
-		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
-		return err
-	}
-	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
-		return err
-	}
-	r := fmt.Sprintf("Pin %v got 'HIGH' on drugs for %v seconds", c.Pin, c.Delay)
-	log.Printf(r)
-	ch <- r
-	time.Sleep(c.Delay)
-	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("0"), 0644); err != nil {
-		return err
-	}
-	log.Printf("pin %v is laid 'LOW'", c.Pin)
-	return nil
-}
-
-func (c *rpiControl) toggle(ch chan string) error {
-	if err := c.enablePin(); err != nil {
-		log.Printf("I couldn't enable pin %v, because %v", c.Pin, err)
-	}
-
-	d, err := ioutil.ReadFile(sysfs + "gpio" + c.Pin + "/value")
-	if err != nil {
-		log.Printf("Oh boy can't read the status of pin	%v becasue I don't have my glasses and %v", c.Pin, err)
-	}
-
-	if string(d) == "1\n" {
-		if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("0"), 0644); err != nil {
-			return err
-		}
-		r := fmt.Sprintf("pin %v just got 'LOW' on selfesteam", c.Pin)
-		log.Printf(r)
-		ch <- r
-		return nil
-	}
-	if err := ioutil.WriteFile(sysfs+"gpio"+c.Pin+"/value", []byte("1"), 0644); err != nil {
-		return err
-	}
-	r := fmt.Sprintf("pin %v just got 'HIGH' on drugs", c.Pin)
-	log.Printf(r)
-	ch <- r
 	return nil
 }
 
@@ -482,5 +307,5 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 		</body>
 		</html>
-		`, defaultPin, defaultDelay)
+		`, gpio.DefaultPin, gpio.DefaultDelay)
 }
