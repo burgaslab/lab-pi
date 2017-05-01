@@ -67,8 +67,7 @@ func (c *Control) SetPin(url url.Values) error {
 			}
 		}
 		sort.Ints(gpioPins)
-		e := fmt.Sprintf("Invalid GPIO pin number:%v, choose one of :%v", p, gpioPins)
-		return errors.New(e)
+		return errors.New(fmt.Sprintf("Invalid GPIO pin number:%v, choose one of :%v", p, gpioPins))
 	}
 	return nil
 }
@@ -80,8 +79,7 @@ func (c *Control) SetDelay(url url.Values) error {
 			c.Delay = t
 			return nil
 		}
-		e := fmt.Sprintf("Invalid time delay format :%v (use 1ms, 1s, 1m, 1h)", d[0])
-		return errors.New(e)
+		return errors.New(fmt.Sprintf("Invalid time delay format :%v (use 1ms, 1s, 1m, 1h)", d[0]))
 	}
 	return nil
 }
