@@ -24,5 +24,6 @@ deploy:
     - rpi-web-control-pi-3
   skip_cleanup: true
   overwrite: true
+  name: Build $(date +'%d.%m.%Y %R')
   on:
     repo: krasi-georgiev/rpi-web-control
