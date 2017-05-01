@@ -17,6 +17,9 @@
    ```
 **open the home page:** http://raspberrypi.local  
 *the RPi support avahi/bonjour so you can access it by its hostname: `raspberrypi.local`*
+
+![Web Gui Preview](/preview.png)
+
 ```
 pass  (required) the password set when you started the server using -pp  
 type  (optional) timer(set 1 wait and set 0) or toggle(toggle between 1 and 0)
