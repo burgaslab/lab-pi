@@ -2,11 +2,12 @@
 *a very minimalistic app to control the RPi outputs using a web browser*
   * garage or front door
   * heating appliances
-
   the app uses go routines and it is non blocking so you can control different pins with different delays and trigger options
 
 ### Download and run the [latest release](../../releases)
- it is single executable binary so **no dependancies** just download and run - quick and efective :thumbsup:
+ it is single executable binary so **no dependancies** just download and run - quick and effective :thumbsup:
+ *tested with RPi-Zero but should also work with Pi-3 when you download the `rpi-web-control-pi-3` version*
+
 
 ### Usage
    ```go
@@ -43,7 +44,6 @@ http://raspberrypi.local/control?pass=password&pin=18&type=timer&delay=2s
   go get github.com/krasi-georgiev/rpi-web-control
   ~/go/bin/rpi-web-control -pp password
   ```
-  *I have only test RPi-Zero but I think Pi-3 should install the amd64 version*
 
 
 ## Build on any system and copy it to the Pi
