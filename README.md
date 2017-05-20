@@ -34,7 +34,7 @@ http://raspberrypi.local/control?pass=password&pin=18&type=timer&delay=2s
 
 ![RPi pinout](/pizeropinout.jpg)
 
-### Build from Source (fun and educational):neckbeard:
+## Build from Source (fun and educational):neckbeard:
 
   **[Install `go` on the RPi..](https://golang.org/doc/install)**
   ```go
@@ -46,7 +46,7 @@ http://raspberrypi.local/control?pass=password&pin=18&type=timer&delay=2s
   ```
 
 
-## Build on any system and copy it to the Pi
+### Build on any system and copy it to the Pi
   ```go
   GOOS=linux GOARCH=arm GOARM=6 go build -o rpi-web-control -v *.go
   // GOOS,GOARCH - sets the target architecture. This example is for Pi Zero
@@ -57,7 +57,7 @@ http://raspberrypi.local/control?pass=password&pin=18&type=timer&delay=2s
   ```
 
 
-## Create systemd service so it runs at boot and restarts if killed.
+## [OPTIONAL]Create systemd service so it runs at boot and restarts if killed.
 
   Create the service file
   `nano /lib/systemd/system/rpi-web-control.service`
