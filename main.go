@@ -84,12 +84,13 @@ func main() {
 			}
 			for {
 				time.Sleep(interval / 3)
-				_, err := http.Get("http://127.0.0.1:" + srvConfig.Port)
+				res, err := http.Get("http://127.0.0.1:" + srvConfig.Port)
 				if err == nil {
 					daemon.SdNotify(false, "WATCHDOG=1")
 				} else {
 					log.Printf("RPi Controller watchdog error: %v", err)
 				}
+				res.Body.Close()
 			}
 		}()
 		return shutdown(quit, srv)
