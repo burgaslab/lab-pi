@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/krasi-georgiev/rpi-web-control/gpio"
 	"github.com/krasi-georgiev/rpi-web-control/server"
+	"github.com/krasi-georgiev/rpiGpio"
 
 	"github.com/coreos/go-systemd/daemon"
 	"github.com/urfave/cli"
@@ -111,22 +111,30 @@ func control(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := gpio.NewControl()
+	t := rpiGpio.NewControl()
 
-	if err := t.SetType(v); err != nil {
-		log.Printf(err.Error())
-		fmt.Fprint(w, err)
-		return
+	if d, ok := v["type"]; ok {
+		if err := t.SetType(d[0]); err != nil {
+			log.Printf(err.Error())
+			fmt.Fprint(w, err)
+			return
+		}
 	}
-	if err := t.SetDelay(v); err != nil {
-		log.Printf(err.Error())
-		fmt.Fprint(w, err)
-		return
+
+	if d, ok := v["delay"]; ok && d[0] != "" {
+		if err := t.SetDelay(d[0]); err != nil {
+			log.Printf(err.Error())
+			fmt.Fprint(w, err)
+			return
+		}
 	}
-	if err := t.SetPin(v); err != nil {
-		log.Printf(err.Error())
-		fmt.Fprint(w, err)
-		return
+
+	if d, ok := v["pin"]; ok && d[0] != "" {
+		if err := t.SetPin(d[0]); err != nil {
+			log.Printf(err.Error())
+			fmt.Fprint(w, err)
+			return
+		}
 	}
 
 	ch := make(chan string)
@@ -308,5 +316,5 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 		</body>
 		</html>
-		`, gpio.DefaultPin, gpio.DefaultDelay)
+		`, rpiGpio.DefaultPin, rpiGpio.DefaultDelay)
 }
