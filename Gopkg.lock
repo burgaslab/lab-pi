@@ -3,14 +3,14 @@ memo = "682aa21f843a152100a578c3147d887b19643a42ea41304e5b0be3c58cbd2407"
 [[projects]]
   name = "github.com/coreos/go-systemd"
   packages = ["daemon"]
-  revision = "48702e0da86bd25e76cfef347e2adeb434a0d0a6"
-  version = "v14"
+  revision = "d2196463941895ee908e13531a23a39feb9e1243"
+  version = "v15"
 
 [[projects]]
   branch = "master"
   name = "github.com/krasi-georgiev/rpiGpio"
   packages = ["."]
-  revision = "c54d308ff2cda016f0a100ac95d742277ec0e2f4"
+  revision = "8e0131a3e21054e6c8f4ef2b5ed81c0d132c84a2"
 
 [[projects]]
   name = "github.com/urfave/cli"

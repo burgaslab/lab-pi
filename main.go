@@ -111,50 +111,33 @@ func control(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := rpiGpio.NewControl()
-
+	var ctype, delay, pin string
 	if d, ok := v["type"]; ok {
-		if err := t.SetType(d[0]); err != nil {
-			log.Printf(err.Error())
-			fmt.Fprint(w, err)
-			return
-		}
+		ctype = d[0]
 	}
 
 	if d, ok := v["delay"]; ok && d[0] != "" {
-		if err := t.SetDelay(d[0]); err != nil {
-			log.Printf(err.Error())
-			fmt.Fprint(w, err)
-			return
-		}
+		delay = d[0]
 	}
 
 	if d, ok := v["pin"]; ok && d[0] != "" {
-		if err := t.SetPin(d[0]); err != nil {
-			log.Printf(err.Error())
-			fmt.Fprint(w, err)
-			return
-		}
+		pin = d[0]
 	}
 
-	ch := make(chan string)
-	go func() {
-		switch a := t.Type; a {
-		case "timer":
-			if err := t.StartTimer(ch); err != nil {
-				r := fmt.Sprintf("Huston we have a problem with the timer: %v", err)
-				log.Printf(r)
-				ch <- r
-			}
-		case "toggle":
-			if err := t.Toggle(ch); err != nil {
-				r := fmt.Sprintf("Huston we have a problem with the toggle: %v", err)
-				log.Printf(r)
-				ch <- r
-			}
-		}
-	}()
-	fmt.Fprint(w, <-ch)
+	t, err := rpiGpio.NewControl(rpiGpio.SetType(ctype), rpiGpio.SetDelay(delay), rpiGpio.SetPin(pin))
+	if err != nil {
+		log.Printf(err.Error())
+		fmt.Fprint(w, err)
+		return
+	}
+
+	if err := t.Run(); err != nil {
+		r := fmt.Sprintf("Huston we have a problem : %v", err)
+		log.Printf(r)
+		fmt.Fprint(w, r)
+	} else {
+		fmt.Fprint(w, "done")
+	}
 }
 
 func shutdown(quit chan os.Signal, srv *http.Server) error {
